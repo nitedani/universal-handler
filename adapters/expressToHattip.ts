@@ -54,7 +54,7 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       const writer = (ctx.writer ??= ctx.res.writable.getWriter());
       const encoder = (ctx.encoder ??= new TextEncoder());
 
-      async function write(...args) {
+      function write(...args) {
         return new Promise<void>((resolve, reject) => {
           const encoded = encoder.encode(...args);
           encoded.forEach((chunk, idx) => {

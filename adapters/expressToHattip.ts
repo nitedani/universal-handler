@@ -1,5 +1,5 @@
-import { PassThrough, Readable } from "stream";
-import { ReadableStream } from "stream/web";
+//@ts-nocheck
+
 import type {
   Request,
   Response as ResponseExpress,
@@ -14,10 +14,14 @@ type MiddlewareExpress = (
 
 export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
   return (ctx) => {
+    if (ctx.resolved) {
+      return ctx.resolved;
+    }
+
     return new Promise<Response | void>((resolve) => {
       const responseHeaders: Record<string, string> = {};
       let responseStatus = 200;
-      const res = new Proxy(new PassThrough(), {
+      const res = (ctx.res ??= new Proxy(new TransformStream(), {
         get(target, prop) {
           if (prop === "headers") {
             return responseHeaders;
@@ -35,24 +39,51 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
           }
           return true;
         },
-      });
-      const originalWrite = res.write.bind(res);
+      }));
 
-      /////////////////////////////
-      /////////////////////////////
-      /////////////////////////////
+      function close() {
+        return new Promise((resolve, reject) => {
+          writer.ready
+            .then(() => {
+              writer.close().then(resolve).catch(reject);
+            })
+            .catch(reject);
+        });
+      }
 
-      // @ts-ignore
+      const writer = (ctx.writer ??= ctx.res.writable.getWriter());
+      const encoder = (ctx.encoder ??= new TextEncoder());
+
+      async function write(...args) {
+        return new Promise<void>((resolve, reject) => {
+          const encoded = encoder.encode(...args);
+          encoded.forEach((chunk, idx) => {
+            writer.ready
+              .then(() => {
+                const view = new Uint8Array(1);
+                view[0] = chunk;
+                writer
+                  .write(view)
+                  .then(() => {
+                    if (idx === encoded.length - 1) {
+                      resolve();
+                    }
+                  })
+                  .catch(reject);
+              })
+              .catch(reject);
+          });
+        });
+      }
+
       res.status = (status: number) => (responseStatus = status);
-      // @ts-ignore
       res.setHeader = (key: string, value: string) => {
         responseHeaders[key] = value;
+        //TODO: this only works on node
+        ctx.platform.response.setHeader(key, value);
       };
-      // @ts-ignore
       res.getHeader = (key: string) => responseHeaders[key];
-      // @ts-ignore
       res.removeHeader = (key: string) => delete responseHeaders[key];
-      // @ts-ignore
       res.writeHead = (
         status_: number,
         headersOrMessage?: Record<string, string> | string
@@ -64,44 +95,36 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       };
       res.write = (...args) => {
         resolveResponse();
-        // @ts-ignore
-        return originalWrite(...args);
+        write(...args);
       };
-      const originalEnd = res.end.bind(res);
-      res.end = (...args) => {
+      res.end = async (...args) => {
         resolveResponse();
-        // @ts-ignore
-        return originalEnd(...args);
+        if (typeof args[0] !== "function") {
+          await write(args[0]);
+        }
+        close();
       };
-      // @ts-ignore
-      res.send = (body: string) => {
-        res.end(body);
+      res.send = async (body: string) => {
+        resolveResponse();
+        await write(body);
+        close();
       };
-      // @ts-ignore
       res._header = () => {};
 
-      /////////////////////////////
-      /////////////////////////////
-      /////////////////////////////
-
-      let resolved = false;
       function resolveResponse() {
-        if (resolved) return;
-        resolved = true;
-        resolve(
-          // @ts-ignore
-          new Response(
-            // @ts-ignore
-            responseStatus === 304
-              ? null
-              : (Readable.toWeb(res) as ReadableStream),
-            { headers: responseHeaders, status: responseStatus }
-          )
+        if (ctx.resolved) return;
+        ctx.resolved = new Response(
+          responseStatus === 304 ? null : ctx.res.readable,
+          {
+            headers: responseHeaders,
+            status: responseStatus,
+          }
         );
+        resolve(ctx.resolved);
       }
 
-      // @ts-ignore
-      middleware(ctx.platform.request, res, () => {
+      //TODO: this only works on node
+      middleware(ctx.platform.request, ctx.res, () => {
         resolve();
       });
     });

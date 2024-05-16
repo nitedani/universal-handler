@@ -6,12 +6,25 @@ const router = createRouter();
 import type { Request, Response, NextFunction } from "express";
 
 function expressMiddleware(req: Request, res: Response, next: NextFunction) {
-  res.status(200);
-  next();
+  console.log(1);
+
+  res.status(222);
+  res.setHeader("my-header", "my-header-value");
   // res.send("hello world")
+  next();
 }
 
-router.use(expressToHattip(expressMiddleware));
+function expressMiddleware2(req: Request, res: Response, next: NextFunction) {
+  console.log(2);
+
+  res.setHeader("my-header2", "my-header-value2");
+  next();
+}
+
+router.use(
+  expressToHattip(expressMiddleware),
+  expressToHattip(expressMiddleware2)
+);
 
 /**
  * Vike route

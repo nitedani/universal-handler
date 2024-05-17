@@ -51,9 +51,6 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       store.res.status = (status: number) => (store.responseStatus = status);
       store.res.setHeader = (key: string, value: string) => {
         store.responseHeaders[key] = value;
-        // TODO: this only works on node
-        // either do this, or need to wrap hattip .use() to modify the response headers of a hattip handler that returns a Response directly
-        ctx.platform.response.setHeader(key, value);
       };
       store.res.getHeader = (key: string) => store.responseHeaders[key];
       store.res.removeHeader = (key: string) =>
@@ -65,9 +62,6 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         store.responseStatus = status_;
         if (typeof headersOrMessage === "object") {
           Object.assign(store.responseHeaders, headersOrMessage);
-          for (const [key, value] of Object.entries(headersOrMessage)) {
-            ctx.platform.response.setHeader(key, value);
-          }
         }
       };
       store.res.write = async (...args) => {
@@ -75,10 +69,8 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
           console.warn("The response is already sent");
           return;
         }
-        resolveResponse();
         return store.originalWrite(...args);
       };
-
       store.res.end = async (...args) => {
         if (store.closed) {
           console.warn("The response is already sent");
@@ -102,8 +94,7 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       function resolveResponse() {
         resolve(
           new Response(
-            store.resolvedResponse ??
-              (store.responseStatus === 304 ? null : Readable.toWeb(store.res)),
+            store.responseStatus === 304 ? null : Readable.toWeb(store.res),
             {
               headers: store.responseHeaders,
               status: store.responseStatus,

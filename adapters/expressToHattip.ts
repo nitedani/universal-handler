@@ -21,7 +21,6 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       res: null,
       writer: null,
       encoder: null,
-      resolvedResponse: null,
     });
 
     return new Promise<Response | void>((resolve) => {
@@ -137,23 +136,20 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       };
       store.res._header = () => {};
 
-      let shouldCallNext = false;
       function resolveResponse() {
-        store.resolvedResponse ??= new Response(
-          store.resolvedResponse ??
-            (store.responseStatus === 304 ? null : store.res.readable),
-          {
-            headers: store.responseHeaders,
-            status: store.responseStatus,
-          }
+        resolve(
+          new Response(
+            store.responseStatus === 304 ? null : store.res.readable,
+            {
+              headers: store.responseHeaders,
+              status: store.responseStatus,
+            }
+          )
         );
-        store.resolvedResponse.shouldCallNext = shouldCallNext;
-        resolve(store.resolvedResponse);
       }
 
       //TODO: ctx.platform.request is not exactly the express request, and only works on node
       middleware(ctx.platform.request, store.res, () => {
-        shouldCallNext = true;
         resolve();
       });
     });

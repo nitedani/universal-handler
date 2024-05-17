@@ -14,56 +14,65 @@ type MiddlewareExpress = (
 
 export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
   return (ctx) => {
-    if (ctx.closed) {
-      return ctx.resolved;
+    const store = (ctx.locals._expressToHattip ??= {
+      responseStatus: 200,
+      responseHeaders: {},
+      closed: false,
+      resolved: null,
+      res: null,
+      writer: null,
+      encoder: null,
+      resolvedResponse: null,
+    });
+    
+
+    if (store.closed && store.resolvedResponse) {
+      return store.resolvedResponse;
     }
 
     return new Promise<Response | void>((resolve) => {
-      const responseHeaders: Record<string, string> = {};
-      let responseStatus = 200;
-      const res = (ctx.res ??= new Proxy(new TransformStream(), {
+      store.res ||= new Proxy(new TransformStream(), {
         get(target, prop) {
           if (prop === "headers") {
-            return responseHeaders;
+            return store.responseHeaders;
           }
           if (prop === "statusCode") {
-            return responseStatus;
+            return store.responseStatus;
           }
           return Reflect.get(target, prop);
         },
         set(target, p, newValue, receiver) {
           if (p === "statusCode") {
-            responseStatus = newValue;
+            store.responseStatus = newValue;
           } else {
             return Reflect.set(target, p, newValue, receiver);
           }
           return true;
         },
-      }));
+      });
+      store.writer ||= store.res.writable.getWriter();
+      store.encoder ||= new TextEncoder();
 
       function close() {
-        ctx.closed = true;
+        store.closed = true;
         return new Promise((resolve, reject) => {
-          writer.ready
+          store.writer.ready
             .then(() => {
-              writer.close().then(resolve).catch(reject);
+              store.writer.close().then(resolve).catch(reject);
             })
             .catch(reject);
         });
       }
 
-      const writer = (ctx.writer ??= ctx.res.writable.getWriter());
-      const encoder = (ctx.encoder ??= new TextEncoder());
-
       function write(chunk) {
         return new Promise<void>((resolve, reject) => {
-          const encoded = encoder.encode(chunk);
+          const encoded = store.encoder.encode(chunk);
           encoded.forEach((chunk, idx) => {
-            writer.ready
+            store.writer.ready
               .then(() => {
                 const view = new Uint8Array(1);
                 view[0] = chunk;
-                writer
+                store.writer
                   .write(view)
                   .then(() => {
                     if (idx === encoded.length - 1) {
@@ -77,25 +86,27 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         });
       }
 
-      res.status = (status: number) => (responseStatus = status);
-      res.setHeader = (key: string, value: string) => {
-        responseHeaders[key] = value;
-        //TODO: this only works on node
+      store.res.status = (status: number) => (store.responseStatus = status);
+      store.res.setHeader = (key: string, value: string) => {
+        store.responseHeaders[key] = value;
+        // TODO: this only works on node
+        // either do this, or need to wrap hattip .use() to modify the response headers of a hattip middleware that returns a Response directly
         ctx.platform.response.setHeader(key, value);
       };
-      res.getHeader = (key: string) => responseHeaders[key];
-      res.removeHeader = (key: string) => delete responseHeaders[key];
-      res.writeHead = (
+      store.res.getHeader = (key: string) => store.responseHeaders[key];
+      store.res.removeHeader = (key: string) =>
+        delete store.responseHeaders[key];
+      store.res.writeHead = (
         status_: number,
         headersOrMessage?: Record<string, string> | string
       ) => {
-        responseStatus = status_;
+        store.responseStatus = status_;
         if (typeof headersOrMessage === "object") {
-          Object.assign(responseHeaders, headersOrMessage);
+          Object.assign(store.responseHeaders, headersOrMessage);
         }
       };
-      res.write = async (...args) => {
-        if (ctx.closed) {
+      store.res.write = async (...args) => {
+        if (store.closed) {
           console.warn("The response is already sent");
           return;
         }
@@ -106,12 +117,12 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
           callback();
         }
       };
-      res.end = async (...args) => {
-        if (ctx.closed) {
+      store.res.end = async (...args) => {
+        if (store.closed) {
           console.warn("The response is already sent");
           return;
         }
-        ctx.closed = true;
+        store.closed = true;
         resolveResponse();
         if (args[0] && typeof args[0] !== "function") {
           await write(args[0]);
@@ -122,31 +133,33 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
           callback();
         }
       };
-      res.send = async (body: string) => {
-        if (ctx.closed) {
+      store.res.send = async (body: string) => {
+        if (store.closed) {
+          console.warn("The response is already sent");
           return;
         }
-        ctx.closed = true;
+        store.closed = true;
         resolveResponse();
         await write(body);
         await close();
       };
-      res._header = () => {};
+      store.res._header = () => {};
 
       function resolveResponse() {
-        ctx.resolved ??= new Response(
-          ctx.resolved ?? (responseStatus === 304 ? null : ctx.res.readable),
+        store.resolvedResponse ??= new Response(
+          store.resolvedResponse ??
+            (store.responseStatus === 304 ? null : store.res.readable),
           {
-            headers: responseHeaders,
-            status: responseStatus,
+            headers: store.responseHeaders,
+            status: store.responseStatus,
           }
         );
 
-        resolve(ctx.resolved);
+        resolve(store.resolvedResponse);
       }
 
-      //TODO: this only works on node
-      middleware(ctx.platform.request, ctx.res, () => {
+      //TODO: ctx.platform.request is not exactly the express request, and only works on node
+      middleware(ctx.platform.request, store.res, () => {
         resolve();
       });
     });

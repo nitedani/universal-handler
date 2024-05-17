@@ -114,7 +114,7 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         ctx.closed = true;
         resolveResponse();
         if (args[0] && typeof args[0] !== "function") {
-          await write(args[0], true);
+          await write(args[0]);
         }
         await close();
         const callback = args[args.length - 1];
@@ -128,7 +128,7 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         }
         ctx.closed = true;
         resolveResponse();
-        await write(body, true);
+        await write(body);
         await close();
       };
       res._header = () => {};

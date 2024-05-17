@@ -21,16 +21,24 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       res: null,
       writer: null,
       encoder: null,
+      writing: Promise.resolve(),
+      originalEmit: null,
     });
 
     return new Promise<Response | void>((resolve) => {
-      store.res ||= new Proxy(new TransformStream(), {
+      store.res ||= new Proxy(new MyResponse(), {
         get(target, prop) {
           if (prop === "headers") {
             return store.responseHeaders;
           }
           if (prop === "statusCode") {
             return store.responseStatus;
+          }
+          if (prop === "headersSent") {
+            return store.closed;
+          }
+          if (prop === "finished") {
+            return store.closed;
           }
           return Reflect.get(target, prop);
         },
@@ -45,16 +53,22 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       });
       store.writer ||= store.res.writable.getWriter();
       store.encoder ||= new TextEncoder();
-
+      store.originalEmit ||= store.res.emit.bind(store.res);
       async function close() {
         store.closed = true;
         await store.writer.ready;
         await store.writer.close();
+        store.res.emit("finish");
+        store.res.emit("end");
       }
 
       async function write(data) {
         let encoded;
 
+        let writingEnded = () => {};
+        store.writing = new Promise((resolve) => {
+          writingEnded = resolve;
+        });
         if (typeof data === "object") {
           encoded = data;
         } else {
@@ -68,7 +82,9 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
           const view = new Uint8Array(encoded.slice(start, end));
           await store.writer.write(view);
         }
+        writingEnded();
       }
+
       store.res.status = (status: number) => (store.responseStatus = status);
       store.res.setHeader = (key: string, value: string) => {
         store.responseHeaders[key] = value;
@@ -106,6 +122,7 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         if (args[0] && typeof args[0] !== "function") {
           await write(args[0]);
         }
+        await store.writing;
         await close();
         const callback = args[args.length - 1];
         if (typeof callback === "function") {
@@ -123,24 +140,27 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         await close();
       };
 
-      store.res.on = () => {};
-      store.res.once = () => {};
       store.res.emit = async (...args) => {
         if (args[0] === "pipe") {
           resolveResponse();
         }
+        store.originalEmit(...args);
       };
       store.res._header = () => {};
 
       function resolveResponse() {
+        if (store.resolvedResponse) {
+          // Response body object should not be disturbed
+          return;
+        }
         resolve(
-          new Response(
+          (store.resolvedResponse = new Response(
             store.responseStatus === 304 ? null : store.res.readable,
             {
               headers: store.responseHeaders,
               status: store.responseStatus,
             }
-          )
+          ))
         );
       }
 
@@ -149,4 +169,58 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       });
     });
   };
+}
+class MyResponse extends TransformStream {
+  listeners = {};
+  emit(eventName, ...data) {
+    if (this.listeners[eventName]) {
+      this.listeners[eventName].forEach((listener) => {
+        setTimeout(() => {
+          listener.callback.apply(this, data);
+        }, 0);
+
+        if (listener.once) {
+          this.off(eventName, listener.callback);
+        }
+      });
+    }
+  }
+
+  on(name, callback) {
+    this.addListener(name, callback);
+  }
+
+  once(name, callback) {
+    if (typeof callback === "function" && typeof name === "string") {
+      if (!this.listeners[name]) {
+        this.listeners[name] = [];
+      }
+      this.listeners[name].push({ callback, once: true });
+    }
+  }
+
+  addListener(name, callback) {
+    if (typeof callback === "function" && typeof name === "string") {
+      if (!this.listeners[name]) {
+        this.listeners[name] = [];
+      }
+      this.listeners[name].push({ callback, once: false });
+    }
+  }
+
+  off(eventName, callback) {
+    this.removeListener(eventName, callback);
+  }
+
+  removeListener(eventName, callback) {
+    if (this.listeners[eventName]) {
+      this.listeners[eventName] = this.listeners[eventName].filter(
+        (listener) => listener.callback !== callback
+      );
+    }
+  }
+
+  destroy() {
+    this.listeners = {};
+  }
 }

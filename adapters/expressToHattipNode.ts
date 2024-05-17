@@ -33,6 +33,12 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
           if (prop === "statusCode") {
             return store.responseStatus;
           }
+          if (prop === "headersSent") {
+            return store.closed;
+          }
+          if (prop === "finished") {
+            return store.closed;
+          }
           return Reflect.get(target, prop);
         },
         set(target, p, newValue, receiver) {

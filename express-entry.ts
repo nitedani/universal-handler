@@ -23,7 +23,6 @@ startServer();
 // TODO take inspiration from https://github.com/hattipjs/hattip/blob/main/packages/adapter/adapter-node/src/request.ts
 async function startServer() {
   const app = express();
-
   if (isProduction) {
     app.use(express.static(`${root}/dist/client`));
   } else {
@@ -56,8 +55,8 @@ async function startServer() {
         secret: "keyboard cat",
         resave: false,
         saveUninitialized: true,
-      }),
-    ),
+      })
+    )
   );
 
   /**

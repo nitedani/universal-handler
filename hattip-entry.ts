@@ -4,6 +4,7 @@ import { renderPage } from "vike/server";
 import { expressToHattip } from "./adapters/expressToHattip";
 const router = createRouter();
 import type { Request, Response, NextFunction } from "express";
+import express from "express";
 import { readFile } from "fs/promises";
 import { createReadStream } from "fs";
 
@@ -14,6 +15,8 @@ function expressMiddleware(req: Request, res: Response, next: NextFunction) {
   res.setHeader("my-header", "my-header-value");
   res.write("hello ");
   // res.send("wordld");
+
+  console.log(req.originalUrl);
 
   next();
 }
@@ -40,6 +43,7 @@ async function expressMiddleware4(req: Request, res: Response) {
   image.pipe(res);
 }
 
+router.use(expressToHattip(express.static("static")));
 router.use(expressToHattip(expressMiddleware));
 router.use(expressToHattip(expressMiddleware2));
 router.use(expressToHattip(expressMiddleware3));

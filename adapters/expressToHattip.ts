@@ -68,7 +68,7 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         }
         await store.writer.ready;
 
-        const chunkSize = 1024; // Define a suitable chunk size.
+        const chunkSize = 1024;
         for (let start = 0; start < encoded.length; start += chunkSize) {
           const end = Math.min(start + chunkSize, encoded.length);
           const view = new Uint8Array(encoded.slice(start, end));

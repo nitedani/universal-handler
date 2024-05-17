@@ -4,6 +4,7 @@ import { renderPage } from "vike/server";
 import { expressToHattip } from "./adapters/expressToHattip";
 const router = createRouter();
 import type { Request, Response, NextFunction } from "express";
+import { readFile } from "fs/promises";
 
 function expressMiddleware(req: Request, res: Response, next: NextFunction) {
   console.log(1);
@@ -22,10 +23,16 @@ function expressMiddleware2(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-router.use(
-  expressToHattip(expressMiddleware),
-  expressToHattip(expressMiddleware2)
-);
+async function expressMiddleware3(req: Request, res: Response) {
+  console.log(3);
+  const image = await readFile("static/IMG_0703.jpg");
+  res.setHeader("Content-Type", "image/jpg");
+  res.send(image);
+}
+
+router.use(expressToHattip(expressMiddleware));
+router.use(expressToHattip(expressMiddleware2));
+router.use(expressToHattip(expressMiddleware3));
 
 /**
  * Vike route

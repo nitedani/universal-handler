@@ -24,7 +24,6 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       encoder: null,
       resolvedResponse: null,
     });
-    
 
     if (store.closed && store.resolvedResponse) {
       return store.resolvedResponse;
@@ -53,37 +52,27 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       store.writer ||= store.res.writable.getWriter();
       store.encoder ||= new TextEncoder();
 
-      function close() {
+      async function close() {
         store.closed = true;
-        return new Promise((resolve, reject) => {
-          store.writer.ready
-            .then(() => {
-              store.writer.close().then(resolve).catch(reject);
-            })
-            .catch(reject);
-        });
+        await store.writer.ready;
+        await store.writer.close();
       }
 
-      function write(chunk) {
-        return new Promise<void>((resolve, reject) => {
-          const encoded = store.encoder.encode(chunk);
-          encoded.forEach((chunk, idx) => {
-            store.writer.ready
-              .then(() => {
-                const view = new Uint8Array(1);
-                view[0] = chunk;
-                store.writer
-                  .write(view)
-                  .then(() => {
-                    if (idx === encoded.length - 1) {
-                      resolve();
-                    }
-                  })
-                  .catch(reject);
-              })
-              .catch(reject);
-          });
-        });
+      async function write(data) {
+        let encoded;
+        if (typeof data === "object") {
+          encoded = data;
+        } else {
+          encoded = store.encoder.encode(data);
+        }
+        await store.writer.ready;
+
+        const chunkSize = 1024;
+        for (let start = 0; start < encoded.length; start += chunkSize) {
+          const end = Math.min(start + chunkSize, encoded.length);
+          const view = new Uint8Array(encoded.slice(start, end));
+          await store.writer.write(view);
+        }
       }
 
       store.res.status = (status: number) => (store.responseStatus = status);

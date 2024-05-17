@@ -60,6 +60,7 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
 
       async function write(data) {
         let encoded;
+
         if (typeof data === "object") {
           encoded = data;
         } else {
@@ -67,14 +68,13 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         }
         await store.writer.ready;
 
-        const chunkSize = 1024;
+        const chunkSize = 1024; // Define a suitable chunk size.
         for (let start = 0; start < encoded.length; start += chunkSize) {
           const end = Math.min(start + chunkSize, encoded.length);
           const view = new Uint8Array(encoded.slice(start, end));
           await store.writer.write(view);
         }
       }
-
       store.res.status = (status: number) => (store.responseStatus = status);
       store.res.setHeader = (key: string, value: string) => {
         store.responseHeaders[key] = value;
@@ -131,6 +131,14 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         resolveResponse();
         await write(body);
         await close();
+      };
+
+      store.res.on = () => {};
+      store.res.once = () => {};
+      store.res.emit = async (...args) => {
+        if (args[0] === "pipe") {
+          resolveResponse();
+        }
       };
       store.res._header = () => {};
 

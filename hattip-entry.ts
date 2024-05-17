@@ -5,6 +5,7 @@ import { expressToHattip } from "./adapters/expressToHattip";
 const router = createRouter();
 import type { Request, Response, NextFunction } from "express";
 import { readFile } from "fs/promises";
+import { createReadStream } from "fs";
 
 function expressMiddleware(req: Request, res: Response, next: NextFunction) {
   console.log(1);
@@ -30,9 +31,17 @@ async function expressMiddleware3(req: Request, res: Response) {
   res.send(image);
 }
 
+async function expressMiddleware4(req: Request, res: Response) {
+  console.log(4);
+  const image = createReadStream("static/IMG_0703.jpg");
+  res.setHeader("Content-Type", "image/jpg");
+  image.pipe(res);
+}
+
 router.use(expressToHattip(expressMiddleware));
 router.use(expressToHattip(expressMiddleware2));
 router.use(expressToHattip(expressMiddleware3));
+router.use(expressToHattip(expressMiddleware4));
 
 /**
  * Vike route
@@ -40,14 +49,14 @@ router.use(expressToHattip(expressMiddleware3));
  * @link {@see https://vike.dev}
  **/
 router.use(async (context) => {
-  const pageContextInit = { urlOriginal: context.request.url };
-  const pageContext = await renderPage(pageContextInit);
-  const response = pageContext.httpResponse;
+  // const pageContextInit = { urlOriginal: context.request.url };
+  // const pageContext = await renderPage(pageContextInit);
+  // const response = pageContext.httpResponse;
 
-  return new Response(await response?.getBody(), {
-    status: response?.statusCode,
-    headers: response?.headers,
-  });
+  // return new Response(await response?.getBody(), {
+  //   status: response?.statusCode,
+  //   headers: response?.headers,
+  // });
 });
 
 export default router.buildHandler() as HattipHandler;

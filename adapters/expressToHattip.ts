@@ -86,6 +86,9 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         store.responseStatus = status_;
         if (typeof headersOrMessage === "object") {
           Object.assign(store.responseHeaders, headersOrMessage);
+          for (const [key, value] of Object.entries(headersOrMessage)) {
+            ctx.platform.response.setHeader(key, value);
+          }
         }
       };
       store.res.write = async (...args) => {

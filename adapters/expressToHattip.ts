@@ -135,8 +135,7 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
 
       function resolveResponse() {
         ctx.resolved = new Response(
-          ctx.resolved?.body ??
-            (responseStatus === 304 ? null : ctx.res.readable),
+          ctx.resolved ?? (responseStatus === 304 ? null : ctx.res.readable),
           {
             headers: responseHeaders,
             status: responseStatus,

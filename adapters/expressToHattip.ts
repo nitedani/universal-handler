@@ -64,7 +64,6 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
 
       async function write(data) {
         let encoded;
-
         let writingEnded = () => {};
         store.writing = new Promise((resolve) => {
           writingEnded = resolve;

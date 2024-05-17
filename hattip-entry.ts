@@ -1,7 +1,7 @@
 import type { HattipHandler } from "@hattip/core";
 import { createRouter } from "@hattip/router";
 import { renderPage } from "vike/server";
-import { expressToHattip } from "./adapters/expressToHattip";
+import { expressToHattip } from "./adapters/expressToHattipNode"
 const router = createRouter();
 import type { Request, Response, NextFunction } from "express";
 import express from "express";
@@ -15,8 +15,6 @@ function expressMiddleware(req: Request, res: Response, next: NextFunction) {
   res.setHeader("my-header", "my-header-value");
   res.write("hello ");
   // res.send("wordld");
-
-  console.log(req.originalUrl);
 
   next();
 }

@@ -38,9 +38,9 @@ async function expressMiddleware4(req: Request, res: Response) {
   image.pipe(res);
 }
 
-router.use(expressToHattip(expressMiddleware));
-router.use(expressToHattip(expressMiddleware2));
-router.use(expressToHattip(expressMiddleware3));
+// router.use(expressToHattip(expressMiddleware));
+// router.use(expressToHattip(expressMiddleware2));
+// router.use(expressToHattip(expressMiddleware3));
 router.use(expressToHattip(expressMiddleware4));
 
 /**
@@ -49,14 +49,14 @@ router.use(expressToHattip(expressMiddleware4));
  * @link {@see https://vike.dev}
  **/
 router.use(async (context) => {
-  // const pageContextInit = { urlOriginal: context.request.url };
-  // const pageContext = await renderPage(pageContextInit);
-  // const response = pageContext.httpResponse;
+  const pageContextInit = { urlOriginal: context.request.url };
+  const pageContext = await renderPage(pageContextInit);
+  const response = pageContext.httpResponse;
 
-  // return new Response(await response?.getBody(), {
-  //   status: response?.statusCode,
-  //   headers: response?.headers,
-  // });
+  return new Response(await response?.getBody(), {
+    status: response?.statusCode,
+    headers: response?.headers,
+  });
 });
 
 export default router.buildHandler() as HattipHandler;

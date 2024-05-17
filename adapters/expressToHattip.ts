@@ -144,7 +144,6 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         );
       }
 
-      //TODO: ctx.platform.request is not exactly the express request, and only works on node
       middleware(ctx.platform.request, store.res, () => {
         resolve(ctx.next());
       });

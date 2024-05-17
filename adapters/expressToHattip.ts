@@ -18,7 +18,6 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       responseStatus: 200,
       responseHeaders: {},
       closed: false,
-      resolved: null,
       res: null,
       writer: null,
       encoder: null,

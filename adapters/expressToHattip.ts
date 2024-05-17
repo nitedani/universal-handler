@@ -90,7 +90,7 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       store.res.setHeader = (key: string, value: string) => {
         store.responseHeaders[key] = value;
         // TODO: this only works on node
-        // either do this, or need to wrap hattip .use() to modify the response headers of a hattip middleware that returns a Response directly
+        // either do this, or need to wrap hattip .use() to modify the response headers of a hattip handler that returns a Response directly
         ctx.platform.response.setHeader(key, value);
       };
       store.res.getHeader = (key: string) => store.responseHeaders[key];

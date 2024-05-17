@@ -14,7 +14,7 @@ type MiddlewareExpress = (
 
 export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
   return (ctx) => {
-    if (ctx.resolved) {
+    if (ctx.closed) {
       return ctx.resolved;
     }
 
@@ -42,6 +42,7 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       }));
 
       function close() {
+        ctx.closed = true;
         return new Promise((resolve, reject) => {
           writer.ready
             .then(() => {
@@ -54,9 +55,9 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       const writer = (ctx.writer ??= ctx.res.writable.getWriter());
       const encoder = (ctx.encoder ??= new TextEncoder());
 
-      function write(...args) {
+      function write(chunk) {
         return new Promise<void>((resolve, reject) => {
-          const encoded = encoder.encode(...args);
+          const encoded = encoder.encode(chunk);
           encoded.forEach((chunk, idx) => {
             writer.ready
               .then(() => {
@@ -93,33 +94,55 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
           Object.assign(responseHeaders, headersOrMessage);
         }
       };
-      res.write = (...args) => {
+      res.write = async (...args) => {
+        if (ctx.closed) {
+          console.warn("The response is already sent");
+          return;
+        }
         resolveResponse();
-        write(...args);
+        await write(...args);
+        const callback = args[args.length - 1];
+        if (typeof callback === "function") {
+          callback();
+        }
       };
       res.end = async (...args) => {
+        if (ctx.closed) {
+          console.warn("The response is already sent");
+          return;
+        }
+        ctx.closed = true;
         resolveResponse();
         if (typeof args[0] !== "function") {
-          await write(args[0]);
+          await write(args[0], true);
         }
-        close();
+        await close();
+        const callback = args[args.length - 1];
+        if (typeof callback === "function") {
+          callback();
+        }
       };
       res.send = async (body: string) => {
+        if (ctx.closed) {
+          return;
+        }
+        ctx.closed = true;
         resolveResponse();
-        await write(body);
-        close();
+        await write(body, true);
+        await close();
       };
       res._header = () => {};
 
       function resolveResponse() {
-        if (ctx.resolved) return;
         ctx.resolved = new Response(
-          responseStatus === 304 ? null : ctx.res.readable,
+          ctx.resolved?.body ??
+            (responseStatus === 304 ? null : ctx.res.readable),
           {
             headers: responseHeaders,
             status: responseStatus,
           }
         );
+
         resolve(ctx.resolved);
       }
 

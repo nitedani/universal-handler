@@ -10,14 +10,14 @@ function expressMiddleware(req: Request, res: Response, next: NextFunction) {
 
   res.status(222);
   res.setHeader("my-header", "my-header-value");
-  // res.send("hello world");
-  // res.end("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-  next();
+  res.write("hello ");
+  res.end("world");
+  // next();
 }
 
 function expressMiddleware2(req: Request, res: Response, next: NextFunction) {
-  // console.log(2);
-  // res.send("hello world2");
+  console.log(2);
+  res.send("hello world2");
   res.setHeader("my-header2", "my-header-value2");
   next();
 }

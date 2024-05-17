@@ -1,7 +1,7 @@
 import type { HattipHandler } from "@hattip/core";
 import { createRouter } from "@hattip/router";
 import { renderPage } from "vike/server";
-import { expressToHattip } from "./adapters/expressToHattip";
+import { expressToHattip } from "./adapters/expressToHattipNode";
 const router = createRouter();
 import type { Request, Response, NextFunction } from "express";
 import { readFile } from "fs/promises";
@@ -12,15 +12,16 @@ function expressMiddleware(req: Request, res: Response, next: NextFunction) {
 
   res.status(222);
   res.setHeader("my-header", "my-header-value");
-  res.write("hello ");
-  res.end("world");
-  // next();
+  // res.write("hello ");
+  // res.send("wordld");
+
+  next();
 }
 
 function expressMiddleware2(req: Request, res: Response, next: NextFunction) {
   console.log(2);
-  res.send("hello world2");
   res.setHeader("my-header2", "my-header-value2");
+  // res.send("world");
   next();
 }
 
@@ -38,9 +39,9 @@ async function expressMiddleware4(req: Request, res: Response) {
   image.pipe(res);
 }
 
-// router.use(expressToHattip(expressMiddleware));
-// router.use(expressToHattip(expressMiddleware2));
-// router.use(expressToHattip(expressMiddleware3));
+router.use(expressToHattip(expressMiddleware));
+router.use(expressToHattip(expressMiddleware2));
+router.use(expressToHattip(expressMiddleware3));
 router.use(expressToHattip(expressMiddleware4));
 
 /**

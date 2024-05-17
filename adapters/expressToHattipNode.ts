@@ -1,11 +1,12 @@
 //@ts-nocheck
-
+import { PassThrough, Readable } from "stream";
 import type {
   Request,
   Response as ResponseExpress,
   NextFunction,
 } from "express";
 import type { RequestHandler } from "@hattip/compose";
+
 type MiddlewareExpress = (
   req: Request,
   res: ResponseExpress,
@@ -18,15 +19,14 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
       responseStatus: 200,
       responseHeaders: {},
       closed: false,
-      resolved: null,
       res: null,
-      writer: null,
-      encoder: null,
       resolvedResponse: null,
+      originalWrite: null,
+      originalEnd: null,
     });
 
     return new Promise<Response | void>((resolve) => {
-      store.res ||= new Proxy(new TransformStream(), {
+      store.res ||= new Proxy(new PassThrough(), {
         get(target, prop) {
           if (prop === "headers") {
             return store.responseHeaders;
@@ -45,32 +45,10 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
           return true;
         },
       });
-      store.writer ||= store.res.writable.getWriter();
-      store.encoder ||= new TextEncoder();
 
-      async function close() {
-        store.closed = true;
-        await store.writer.ready;
-        await store.writer.close();
-      }
+      store.originalWrite ||= store.res.write.bind(store.res);
+      store.originalEnd ||= store.res.end.bind(store.res);
 
-      async function write(data) {
-        let encoded;
-
-        if (typeof data === "object") {
-          encoded = data;
-        } else {
-          encoded = store.encoder.encode(data);
-        }
-        await store.writer.ready;
-
-        const chunkSize = 1024;
-        for (let start = 0; start < encoded.length; start += chunkSize) {
-          const end = Math.min(start + chunkSize, encoded.length);
-          const view = new Uint8Array(encoded.slice(start, end));
-          await store.writer.write(view);
-        }
-      }
       store.res.status = (status: number) => (store.responseStatus = status);
       store.res.setHeader = (key: string, value: string) => {
         store.responseHeaders[key] = value;
@@ -88,6 +66,9 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         store.responseStatus = status_;
         if (typeof headersOrMessage === "object") {
           Object.assign(store.responseHeaders, headersOrMessage);
+          for (const [key, value] of Object.entries(headersOrMessage)) {
+            ctx.platform.response.setHeader(key, value);
+          }
         }
       };
       store.res.write = async (...args) => {
@@ -96,12 +77,9 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
           return;
         }
         resolveResponse();
-        await write(...args);
-        const callback = args[args.length - 1];
-        if (typeof callback === "function") {
-          callback();
-        }
+        return store.originalWrite(...args);
       };
+
       store.res.end = async (...args) => {
         if (store.closed) {
           console.warn("The response is already sent");
@@ -109,52 +87,34 @@ export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
         }
         store.closed = true;
         resolveResponse();
-        if (args[0] && typeof args[0] !== "function") {
-          await write(args[0]);
-        }
-        await close();
-        const callback = args[args.length - 1];
-        if (typeof callback === "function") {
-          callback();
-        }
+        return store.originalEnd(...args);
       };
-      store.res.send = async (body: string) => {
+      store.res.send = async (...args) => {
         if (store.closed) {
           console.warn("The response is already sent");
           return;
         }
         store.closed = true;
         resolveResponse();
-        await write(body);
-        await close();
-      };
-
-      store.res.on = () => {};
-      store.res.once = () => {};
-      store.res.emit = async (...args) => {
-        if (args[0] === "pipe") {
-          resolveResponse();
-        }
+        return store.originalEnd(...args);
       };
       store.res._header = () => {};
 
-      let shouldCallNext = false;
       function resolveResponse() {
         store.resolvedResponse ??= new Response(
           store.resolvedResponse ??
-            (store.responseStatus === 304 ? null : store.res.readable),
+            (store.responseStatus === 304 ? null : Readable.toWeb(store.res)),
           {
             headers: store.responseHeaders,
             status: store.responseStatus,
           }
         );
-        store.resolvedResponse.shouldCallNext = shouldCallNext;
+
         resolve(store.resolvedResponse);
       }
 
       //TODO: ctx.platform.request is not exactly the express request, and only works on node
       middleware(ctx.platform.request, store.res, () => {
-        shouldCallNext = true;
         resolve();
       });
     });

@@ -4,10 +4,10 @@ import { Hono } from "hono";
 import { compress } from "hono/compress";
 import { renderPage } from "vike/server";
 import type { Request, Response, NextFunction } from "express";
-import { expressToHattip } from "./adapters/expressToHattip";
 import { hattipToHono } from "./adapters/hattipToHono";
 import { RequestContext } from "@hattip/compose";
 import { readFile } from "fs/promises";
+import { expressToHono } from "./adapters/expressToHono";
 
 const isProduction = process.env.NODE_ENV === "production";
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
@@ -35,8 +35,8 @@ function expressMiddleware2(req: Request, res: Response, next: NextFunction) {
 
 function hattipHandler(ctx: RequestContext) {
   console.log("hattip handler");
-  
-  return ctx.next()
+
+  return ctx.next();
   return new Response("hello world", {
     status: 211,
     headers: {
@@ -63,11 +63,10 @@ if (isProduction) {
   );
 }
 
-app.use(hattipToHono(expressToHattip(expressMiddleware)));
-app.use(hattipToHono(expressToHattip(expressMiddleware2)));
+app.use(expressToHono(expressMiddleware));
+app.use(expressToHono(expressMiddleware2));
 app.use(hattipToHono(hattipHandler));
-app.use(hattipToHono(expressToHattip(expressMiddleware3)));
-
+app.use(expressToHono(expressMiddleware3));
 
 app.all("*", async (c, next) => {
   const pageContextInit = {

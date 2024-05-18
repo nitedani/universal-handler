@@ -15,6 +15,10 @@ import {
 } from "h3";
 import serveStatic from "serve-static";
 import { renderPage } from "vike/server";
+import { hattipToH3 } from "./adapters/hattipToH3";
+import { expressToH3 } from "./adapters/expressToH3";
+import type { Request, Response, NextFunction } from "express";
+import { RequestContext } from "@hattip/compose";
 
 installWhatwgNodeFetch();
 installGetSetCookie();
@@ -27,7 +31,7 @@ const root = __dirname;
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const hmrPort = process.env.HMR_PORT
   ? parseInt(process.env.HMR_PORT, 10)
-  : 24678;
+  : 24679;
 
 startServer();
 
@@ -52,6 +56,28 @@ async function startServer() {
 
   const router = createRouter();
 
+  function expressMiddleware(req: Request, res: Response, next: NextFunction) {
+    console.log(1);
+    res.status(223);
+    res.setHeader("Content-Type", "text/plain");
+    const largeArrayOfLetters = new Array(222).fill("abcd");
+    res.write(largeArrayOfLetters.join(""));
+    res.end();
+    // next();
+  }
+
+  function hattipHandler(ctx: RequestContext) {
+    return new Response("hello world", {
+      status: 211,
+      headers: {
+        "my-header4": "my-header-value4",
+      },
+    });
+  }
+
+  app.use(expressToH3(expressMiddleware));
+  app.use(hattipToH3(hattipHandler));
+
   /**
    * Vike route
    *
@@ -71,7 +97,7 @@ async function startServer() {
       setResponseHeaders(event, Object.fromEntries(response?.headers ?? []));
 
       return response?.getBody();
-    }),
+    })
   );
 
   app.use(router);

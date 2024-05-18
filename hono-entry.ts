@@ -34,6 +34,8 @@ function expressMiddleware2(req: Request, res: Response, next: NextFunction) {
 }
 
 function hattipHandler(ctx: RequestContext) {
+  console.log("hattip handler");
+  
   return ctx.next()
   return new Response("hello world", {
     status: 211,

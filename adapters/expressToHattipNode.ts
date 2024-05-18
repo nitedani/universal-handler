@@ -15,95 +15,91 @@ type MiddlewareExpress = (
 
 export function expressToHattip(middleware: MiddlewareExpress): RequestHandler {
   return (ctx) => {
-    const store = (ctx.locals._expressToHattip ??= {
-      responseStatus: 200,
-      responseHeaders: {},
-      closed: false,
-      res: null,
-      originalWrite: null,
-      originalEnd: null,
-    });
+    const store = (ctx.locals._expressToHattip ??= {});
+    store.p ||= new PassThrough();
+    store.originalEnd ||= store.p.end.bind(store.p);
+    store.originalWrite ||= store.p.write.bind(store.p);
+    store.originalEmit ||= store.p.emit.bind(store.p);
 
     return new Promise<Response | void>((resolve) => {
-      store.res ||= new Proxy(new PassThrough(), {
-        get(target, prop) {
-          if (prop === "headers") {
-            return store.responseHeaders;
-          }
-          if (prop === "statusCode") {
-            return store.responseStatus;
-          }
-          if (prop === "headersSent") {
-            return store.closed;
-          }
-          if (prop === "finished") {
-            return store.closed;
-          }
-          return Reflect.get(target, prop);
-        },
-        set(target, p, newValue, receiver) {
-          if (p === "statusCode") {
-            store.responseStatus = newValue;
-          } else {
-            return Reflect.set(target, p, newValue, receiver);
-          }
-          return true;
-        },
-      });
+      store.p.emit = (...args) => {
+        if (args[0] === "pipe") {
+          resolveResponse();
+        }
+        store.originalEmit(...args);
+      };
+      store.res ||= new Proxy(
+        Object.assign(store.p, {
+          headers: {},
+          statusCode: 200,
+          _header: () => {},
+          status: (status: number) => {
+            store.res.statusCode = status;
+          },
+          setHeader: (key: string, value: string) => {
+            store.res.headers[key] = value;
+          },
+          getHeader: (key: string) => store.res.headers[key],
+          removeHeader: (key: string) => delete store.res.headers[key],
+          write: (...args) => {
+            resolveResponse();
+            return store.originalWrite(...args);
+          },
+          send: (...args) => {
+            return store.res.end(...args);
+          },
+          end: async (...args) => {
+            resolveResponse();
+            return store.originalEnd(...args);
+          },
+        }),
+        {
+          get(target, prop) {
+            if (
+              [
+                "headers",
+                "statusCode",
+                "status",
+                "setHeader",
+                "getHeader",
+                "removeHeader",
+                "send",
+                "end",
+                "emit",
+                "_events",
+                "destroy",
 
-      store.originalWrite ||= store.res.write.bind(store.res);
-      store.originalEnd ||= store.res.end.bind(store.res);
+                "write",
 
-      store.res.status = (status: number) => (store.responseStatus = status);
-      store.res.setHeader = (key: string, value: string) => {
-        store.responseHeaders[key] = value;
-      };
-      store.res.getHeader = (key: string) => store.responseHeaders[key];
-      store.res.removeHeader = (key: string) =>
-        delete store.responseHeaders[key];
-      store.res.writeHead = (
-        status_: number,
-        headersOrMessage?: Record<string, string> | string
-      ) => {
-        store.responseStatus = status_;
-        if (typeof headersOrMessage === "object") {
-          Object.assign(store.responseHeaders, headersOrMessage);
+                "Symbol(kCallback)",
+              ].includes(prop.toString())
+            ) {
+              return Reflect.get(target, prop);
+            }
+            if (prop in ctx.platform.response) {
+              return ctx.platform.response[prop];
+            }
+            return Reflect.get(target, prop);
+          },
+          set(target, p, newValue, receiver) {
+            if (["headers", "statusCode", "end", "send"].includes(p)) {
+              return Reflect.set(target, p, newValue, receiver);
+            } else {
+              ctx.platform.response[p] = newValue;
+            }
+
+            return true;
+          },
         }
-      };
-      store.res.write = async (...args) => {
-        if (store.closed) {
-          console.warn("The response is already sent");
-          return;
-        }
-        return store.originalWrite(...args);
-      };
-      store.res.end = async (...args) => {
-        if (store.closed) {
-          console.warn("The response is already sent");
-          return;
-        }
-        store.closed = true;
-        resolveResponse();
-        return store.originalEnd(...args);
-      };
-      store.res.send = async (...args) => {
-        if (store.closed) {
-          console.warn("The response is already sent");
-          return;
-        }
-        store.closed = true;
-        resolveResponse();
-        return store.originalEnd(...args);
-      };
-      store.res._header = () => {};
+      );
 
       function resolveResponse() {
         resolve(
           new Response(
-            store.responseStatus === 304 ? null : Readable.toWeb(store.res),
+            store.res.statusCode === 304 ? null : Readable.toWeb(store.res),
             {
-              headers: store.responseHeaders,
-              status: store.responseStatus,
+              headers: store.res.headers,
+              status: store.res.statusCode,
             }
           )
         );

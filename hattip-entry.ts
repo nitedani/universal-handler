@@ -1,28 +1,28 @@
 import type { HattipHandler } from "@hattip/core";
 import { createRouter } from "@hattip/router";
 import { renderPage } from "vike/server";
-import { expressToHattip } from "./adapters/expressToHattipNode"
+import { expressToHattip } from "./adapters/expressToHattip";
 const router = createRouter();
 import type { Request, Response, NextFunction } from "express";
 import express from "express";
 import { readFile } from "fs/promises";
 import { createReadStream } from "fs";
+import compression from "compression";
 
 function expressMiddleware(req: Request, res: Response, next: NextFunction) {
   console.log(1);
-
-  res.status(222);
-  res.setHeader("my-header", "my-header-value");
-  res.write("hello ");
-  // res.send("wordld");
-
+  res.status(223);
+  res.setHeader("Content-Type", "text/plain");
+  const largeArrayOfLetters = new Array(222).fill("abcd");
+  res.write(largeArrayOfLetters.join(""));
+  // res.end();
   next();
 }
 
 function expressMiddleware2(req: Request, res: Response, next: NextFunction) {
   console.log(2);
-  res.setHeader("my-header2", "my-header-value2");
-  res.send("world");
+  // res.setHeader("my-header2", "my-header-value2");
+  res.end("23");
 
   // next();
 }
@@ -40,7 +40,7 @@ async function expressMiddleware4(req: Request, res: Response) {
   res.setHeader("Content-Type", "image/jpg");
   image.pipe(res);
 }
-
+router.use(expressToHattip(compression()));
 router.use(expressToHattip(express.static("static")));
 router.use(expressToHattip(expressMiddleware));
 router.use(expressToHattip(expressMiddleware2));
@@ -53,6 +53,8 @@ router.use(expressToHattip(expressMiddleware4));
  * @link {@see https://vike.dev}
  **/
 router.use(async (context) => {
+  console.log(444);
+
   const pageContextInit = { urlOriginal: context.request.url };
   const pageContext = await renderPage(pageContextInit);
   const response = pageContext.httpResponse;

@@ -11,10 +11,6 @@ export function hattipToHono(
       url: new URL(c.req.url),
       method: c.req.method,
       locals: {},
-      next: async () => {
-        await next();
-        return c.get("_response");
-      },
       handleError(error) {
         c.error = error;
         return c.get("_response");
@@ -25,6 +21,10 @@ export function hattipToHono(
       },
     };
 
+    requestContext.next = async () => {
+      await next();
+      return c.get("_response");
+    };
     c.set("_store", requestContext);
     const res = await requestHandler(requestContext);
     c.set("_response", res);

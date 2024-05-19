@@ -8,6 +8,8 @@ import { transformHandler } from "./utils/express/transformer.js";
 import { vikeHandler } from "./utils/vike-handler.js";
 import session from "express-session";
 import { logChange } from "./utils/proxy.js";
+import { RequestContext } from "@hattip/compose";
+import { hattipToExpress } from "./adapters/hattipToExpress.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,9 +18,21 @@ const root = __dirname;
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const hmrPort = process.env.HMR_PORT
   ? parseInt(process.env.HMR_PORT, 10)
-  : 24678;
+  : 24679;
 
 startServer();
+
+function hattipHandler(ctx: RequestContext) {
+  console.log("hattip handler");
+
+  // return ctx.next();
+  return new Response("hello world", {
+    status: 211,
+    headers: {
+      "my-header4": "my-header-value4",
+    },
+  });
+}
 
 // TODO take inspiration from https://github.com/hattipjs/hattip/blob/main/packages/adapter/adapter-node/src/request.ts
 async function startServer() {
@@ -58,6 +72,7 @@ async function startServer() {
       })
     )
   );
+  app.use(hattipToExpress(hattipHandler));
 
   /**
    * Vike route

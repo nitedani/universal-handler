@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.1.18](https://github.com/nitedani/universal-handler/compare/sirv-v0.1.17...sirv-v0.1.18) (2025-04-05)
+
+
+### Features
+
+* `@universal-middleware/sirv` ([#113](https://github.com/nitedani/universal-handler/issues/113)) ([033c35f](https://github.com/nitedani/universal-handler/commit/033c35f5b83c41cbfdb608a99e843335befa9311))
+
+
+### Bug Fixes
+
+* ensure late errors are forwarded as expected ([#138](https://github.com/nitedani/universal-handler/issues/138)) ([f37cac7](https://github.com/nitedani/universal-handler/commit/f37cac764b8b2fe054b297a52bbf12cde7076949))
+* **h3:** memoize request ([7bc79af](https://github.com/nitedani/universal-handler/commit/7bc79af17c716152d54b72b83c795fb5ccf92ddd))
+* **sirv:** do not fallback to 404 by default ([d72f086](https://github.com/nitedani/universal-handler/commit/d72f0860287e52f69908832cdaaac8090611cab8))
+* **sirv:** middleware signature ([55d2053](https://github.com/nitedani/universal-handler/commit/55d2053acd89c06edde920858ac7f648abab18bf))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @universal-middleware/core bumped to 0.5.0
+    * @universal-middleware/express bumped to 0.5.0
+    * universal-middleware bumped to 0.7.0
+
 ## [0.1.17](https://github.com/magne4000/universal-middleware/compare/sirv-v0.1.16...sirv-v0.1.17) (2025-04-03)
 
 

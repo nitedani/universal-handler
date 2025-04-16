@@ -7,6 +7,34 @@
   * dependencies
     * @universal-middleware/core bumped to 0.3.3
 
+## [0.5.0](https://github.com/nitedani/universal-handler/compare/webroute-v0.4.7...webroute-v0.5.0) (2025-04-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop support for Deno v1
+* add Context typings to HonoHandler and HonoMiddleware
+
+### Features
+
+* add the ability to `pipe` adapter middlewares in addition to universal ones ([#66](https://github.com/nitedani/universal-handler/issues/66)) ([28332e3](https://github.com/nitedani/universal-handler/commit/28332e3e2bc3c2730191655ae77f56ab6a33d771))
+* Default to 404 when a `UniversalHandler` does not return a Response ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* document runtime and add adapter specific properties ([203febf](https://github.com/nitedani/universal-handler/commit/203febfec402d095a443b21255a8c2d4fa99fcab))
+* Universal Router support for most adapters ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* update Deno support ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+
+
+### Bug Fixes
+
+* ensure late errors are forwarded as expected ([#138](https://github.com/nitedani/universal-handler/issues/138)) ([f37cac7](https://github.com/nitedani/universal-handler/commit/f37cac764b8b2fe054b297a52bbf12cde7076949))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @universal-middleware/core bumped to 0.5.0
+
 ## [0.4.7](https://github.com/magne4000/universal-middleware/compare/webroute-v0.4.6...webroute-v0.4.7) (2025-04-06)
 
 

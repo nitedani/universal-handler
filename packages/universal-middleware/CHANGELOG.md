@@ -5,6 +5,50 @@
 
 * export Target and RuntimeAdapter from generated code ([056df5f](https://github.com/magne4000/universal-middleware/commit/056df5f8a48039eb93805f868f8f938c001423a9))
 
+## [0.7.0](https://github.com/nitedani/universal-handler/compare/universal-middleware-v0.6.19...universal-middleware-v0.7.0) (2025-04-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop support for Deno v1
+* add Context typings to HonoHandler and HonoMiddleware
+
+### Features
+
+* @universal-middleware/compress package ([#41](https://github.com/nitedani/universal-handler/issues/41)) ([97fd518](https://github.com/nitedani/universal-handler/commit/97fd51819192a1d8b1d6659995b197ae8ddeb163))
+* Add `vercel-edge` and `vercel-node` support ([f0b33f8](https://github.com/nitedani/universal-handler/commit/f0b33f8fcb751d50f7062f4b450b7a2c30d9a460))
+* add the ability to `pipe` adapter middlewares in addition to universal ones ([#66](https://github.com/nitedani/universal-handler/issues/66)) ([28332e3](https://github.com/nitedani/universal-handler/commit/28332e3e2bc3c2730191655ae77f56ab6a33d771))
+* **compress:** compress stream are now flushable ([#144](https://github.com/nitedani/universal-handler/issues/144)) ([8235847](https://github.com/nitedani/universal-handler/commit/823584751041516889c7cc7ee077fffc74fa5b04))
+* Default to 404 when a `UniversalHandler` does not return a Response ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* export are now self-contained bundles by default ([adf9f30](https://github.com/nitedani/universal-handler/commit/adf9f3007ac7655e6288fef24d418b159c79d8fd))
+* export Target and RuntimeAdapter from generated code ([056df5f](https://github.com/nitedani/universal-handler/commit/056df5f8a48039eb93805f868f8f938c001423a9))
+* Universal Router support for most adapters ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* update Deno support ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+
+
+### Bug Fixes
+
+* **deps:** update all non-major dependencies ([#148](https://github.com/nitedani/universal-handler/issues/148)) ([c563509](https://github.com/nitedani/universal-handler/commit/c563509d74b2c52ca3638f10b632684bc694a67a))
+* **deps:** update all non-major dependencies ([#58](https://github.com/nitedani/universal-handler/issues/58)) ([24d5fc3](https://github.com/nitedani/universal-handler/commit/24d5fc3bafb0ef3b00c0eb8067d7acb86a67d079))
+* **deps:** update all non-major dependencies ([#88](https://github.com/nitedani/universal-handler/issues/88)) ([105940c](https://github.com/nitedani/universal-handler/commit/105940c4f2527370f4ccdd69651a1dee9a8c2a8c))
+* **deps:** update dependency unplugin to v2 ([#81](https://github.com/nitedani/universal-handler/issues/81)) ([46a0a8c](https://github.com/nitedani/universal-handler/commit/46a0a8cff33343d95843a3f1606ebedaca3bda17))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @universal-middleware/cloudflare bumped to 0.5.0
+    * @universal-middleware/core bumped to 0.5.0
+    * @universal-middleware/elysia bumped to 0.5.0
+    * @universal-middleware/express bumped to 0.5.0
+    * @universal-middleware/fastify bumped to 0.6.0
+    * @universal-middleware/h3 bumped to 0.5.0
+    * @universal-middleware/hattip bumped to 0.5.0
+    * @universal-middleware/hono bumped to 0.5.0
+    * @universal-middleware/vercel bumped to 0.5.0
+    * @universal-middleware/webroute bumped to 0.5.0
+
 ## [0.6.19](https://github.com/magne4000/universal-middleware/compare/universal-middleware-v0.6.18...universal-middleware-v0.6.19) (2025-04-06)
 
 

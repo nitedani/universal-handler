@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.2.29](https://github.com/nitedani/universal-handler/compare/compress-v0.2.28...compress-v0.2.29) (2025-04-16)
+
+
+### Features
+
+* @universal-middleware/compress package ([#41](https://github.com/nitedani/universal-handler/issues/41)) ([97fd518](https://github.com/nitedani/universal-handler/commit/97fd51819192a1d8b1d6659995b197ae8ddeb163))
+* Add `vercel-edge` and `vercel-node` support ([f0b33f8](https://github.com/nitedani/universal-handler/commit/f0b33f8fcb751d50f7062f4b450b7a2c30d9a460))
+* **compress:** compress stream are now flushable ([#144](https://github.com/nitedani/universal-handler/issues/144)) ([8235847](https://github.com/nitedani/universal-handler/commit/823584751041516889c7cc7ee077fffc74fa5b04))
+* enable zlib compression when available ([d2f6509](https://github.com/nitedani/universal-handler/commit/d2f6509164e09b0d3ee9d24ae4f7a5a9c558292b))
+* export are now self-contained bundles by default ([adf9f30](https://github.com/nitedani/universal-handler/commit/adf9f3007ac7655e6288fef24d418b159c79d8fd))
+
+
+### Bug Fixes
+
+* Handle redirect when converting node response to standard ([#107](https://github.com/nitedani/universal-handler/issues/107)) ([7f1afdb](https://github.com/nitedani/universal-handler/commit/7f1afdb1c5adadfd55a4eac26c8c0da46e8e2305))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * @universal-middleware/core bumped to 0.5.0
+    * universal-middleware bumped to 0.7.0
+
 ## [0.2.28](https://github.com/magne4000/universal-middleware/compare/compress-v0.2.27...compress-v0.2.28) (2025-04-06)
 
 

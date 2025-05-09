@@ -7,6 +7,38 @@
   * dependencies
     * @universal-middleware/core bumped to 0.3.3
 
+## [0.5.0](https://github.com/nitedani/universal-handler/compare/hono-v0.4.9...hono-v0.5.0) (2025-04-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop support for Deno v1
+* add Context typings to HonoHandler and HonoMiddleware
+
+### Features
+
+* @universal-middleware/compress package ([#41](https://github.com/nitedani/universal-handler/issues/41)) ([97fd518](https://github.com/nitedani/universal-handler/commit/97fd51819192a1d8b1d6659995b197ae8ddeb163))
+* add the ability to `pipe` adapter middlewares in addition to universal ones ([#66](https://github.com/nitedani/universal-handler/issues/66)) ([28332e3](https://github.com/nitedani/universal-handler/commit/28332e3e2bc3c2730191655ae77f56ab6a33d771))
+* Default to 404 when a `UniversalHandler` does not return a Response ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* document runtime and add adapter specific properties ([203febf](https://github.com/nitedani/universal-handler/commit/203febfec402d095a443b21255a8c2d4fa99fcab))
+* export are now self-contained bundles by default ([adf9f30](https://github.com/nitedani/universal-handler/commit/adf9f3007ac7655e6288fef24d418b159c79d8fd))
+* Universal Router support for most adapters ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* update Deno support ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+
+
+### Bug Fixes
+
+* ensure late errors are forwarded as expected ([#138](https://github.com/nitedani/universal-handler/issues/138)) ([f37cac7](https://github.com/nitedani/universal-handler/commit/f37cac764b8b2fe054b297a52bbf12cde7076949))
+* **express:** large streams are no longer terminated unexpectedly ([#123](https://github.com/nitedani/universal-handler/issues/123)) ([82c43f1](https://github.com/nitedani/universal-handler/commit/82c43f12f254d0b26505a19f7d58c3480ab7883a))
+* **hono:** better hono apply function type ([03faf92](https://github.com/nitedani/universal-handler/commit/03faf92789eb111ac6188b92778cc07c9df0e787))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @universal-middleware/core bumped to 0.5.0
+
 ## [0.4.9](https://github.com/magne4000/universal-middleware/compare/hono-v0.4.8...hono-v0.4.9) (2025-04-06)
 
 

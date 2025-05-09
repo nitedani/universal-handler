@@ -7,6 +7,45 @@
   * dependencies
     * @universal-middleware/core bumped to 0.3.3
 
+## [0.5.0](https://github.com/nitedani/universal-handler/compare/express-v0.4.14...express-v0.5.0) (2025-04-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop support for Deno v1
+* add Context typings to HonoHandler and HonoMiddleware
+
+### Features
+
+* @universal-middleware/compress package ([#41](https://github.com/nitedani/universal-handler/issues/41)) ([97fd518](https://github.com/nitedani/universal-handler/commit/97fd51819192a1d8b1d6659995b197ae8ddeb163))
+* add support for express@5 ([#145](https://github.com/nitedani/universal-handler/issues/145)) ([2d8703e](https://github.com/nitedani/universal-handler/commit/2d8703e1ccc5e558c0dfb8a5bc70c4da00dd2c29))
+* add the ability to `pipe` adapter middlewares in addition to universal ones ([#66](https://github.com/nitedani/universal-handler/issues/66)) ([28332e3](https://github.com/nitedani/universal-handler/commit/28332e3e2bc3c2730191655ae77f56ab6a33d771))
+* Default to 404 when a `UniversalHandler` does not return a Response ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* document runtime and add adapter specific properties ([203febf](https://github.com/nitedani/universal-handler/commit/203febfec402d095a443b21255a8c2d4fa99fcab))
+* export are now self-contained bundles by default ([adf9f30](https://github.com/nitedani/universal-handler/commit/adf9f3007ac7655e6288fef24d418b159c79d8fd))
+* new utils ([#125](https://github.com/nitedani/universal-handler/issues/125)) ([e4fb3e8](https://github.com/nitedani/universal-handler/commit/e4fb3e86ec97224a24336b49febb75499c29b2d9))
+* Universal Router support for most adapters ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* update Deno support ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+
+
+### Bug Fixes
+
+* **deps:** update all non-major dependencies ([#148](https://github.com/nitedani/universal-handler/issues/148)) ([c563509](https://github.com/nitedani/universal-handler/commit/c563509d74b2c52ca3638f10b632684bc694a67a))
+* ensure late errors are forwarded as expected ([#138](https://github.com/nitedani/universal-handler/issues/138)) ([f37cac7](https://github.com/nitedani/universal-handler/commit/f37cac764b8b2fe054b297a52bbf12cde7076949))
+* **express:** better back-pressure handling ([509a6aa](https://github.com/nitedani/universal-handler/commit/509a6aad3ab63d256b888a2cf02add566f56116c))
+* **express:** fallback to 404 if next does not exist ([0a771ee](https://github.com/nitedani/universal-handler/commit/0a771eee52967c86f9315a5fa09bc788fe1df054))
+* **express:** fix redirect URL computation ([196605a](https://github.com/nitedani/universal-handler/commit/196605a571a20b723859eb6743144926973ad85c))
+* **express:** large streams are no longer terminated unexpectedly ([#123](https://github.com/nitedani/universal-handler/issues/123)) ([82c43f1](https://github.com/nitedani/universal-handler/commit/82c43f12f254d0b26505a19f7d58c3480ab7883a))
+* **express:** redirect to correct URL ([a01268a](https://github.com/nitedani/universal-handler/commit/a01268a6e1c7820a43fedeb62f3331007ec2458b))
+* Handle redirect when converting node response to standard ([#107](https://github.com/nitedani/universal-handler/issues/107)) ([7f1afdb](https://github.com/nitedani/universal-handler/commit/7f1afdb1c5adadfd55a4eac26c8c0da46e8e2305))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @universal-middleware/core bumped to 0.5.0
+
 ## [0.4.14](https://github.com/magne4000/universal-middleware/compare/express-v0.4.13...express-v0.4.14) (2025-04-06)
 
 

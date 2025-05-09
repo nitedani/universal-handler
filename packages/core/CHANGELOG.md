@@ -5,6 +5,36 @@
 
 * new type RuntimeAdapterTarget ([8768e6d](https://github.com/magne4000/universal-middleware/commit/8768e6dd6f1e7e7bfcbe88baf13a21bbaae842c6))
 
+## [0.5.0](https://github.com/nitedani/universal-handler/compare/core-v0.4.7...core-v0.5.0) (2025-04-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop support for Deno v1
+* add Context typings to HonoHandler and HonoMiddleware
+
+### Features
+
+* Add `vercel-edge` and `vercel-node` support ([f0b33f8](https://github.com/nitedani/universal-handler/commit/f0b33f8fcb751d50f7062f4b450b7a2c30d9a460))
+* add the ability to `pipe` adapter middlewares in addition to universal ones ([#66](https://github.com/nitedani/universal-handler/issues/66)) ([28332e3](https://github.com/nitedani/universal-handler/commit/28332e3e2bc3c2730191655ae77f56ab6a33d771))
+* **compress:** compress stream are now flushable ([#144](https://github.com/nitedani/universal-handler/issues/144)) ([8235847](https://github.com/nitedani/universal-handler/commit/823584751041516889c7cc7ee077fffc74fa5b04))
+* **core:** export getRuntimeKey ([27a97a9](https://github.com/nitedani/universal-handler/commit/27a97a9d03c1e9d55186758d31e3b6b2389f596a))
+* Default to 404 when a `UniversalHandler` does not return a Response ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* document runtime and add adapter specific properties ([203febf](https://github.com/nitedani/universal-handler/commit/203febfec402d095a443b21255a8c2d4fa99fcab))
+* new `pipeRoute` util ([bc7148a](https://github.com/nitedani/universal-handler/commit/bc7148a3561a00cdb910059606c4054c05a5b312))
+* new type RuntimeAdapterTarget ([8768e6d](https://github.com/nitedani/universal-handler/commit/8768e6dd6f1e7e7bfcbe88baf13a21bbaae842c6))
+* new utils ([#125](https://github.com/nitedani/universal-handler/issues/125)) ([e4fb3e8](https://github.com/nitedani/universal-handler/commit/e4fb3e86ec97224a24336b49febb75499c29b2d9))
+* Universal Router support for most adapters ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* update Deno support ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+
+
+### Bug Fixes
+
+* **elysia:** middlewares returning early responses are handled correctly ([#134](https://github.com/nitedani/universal-handler/issues/134)) ([0d8f22a](https://github.com/nitedani/universal-handler/commit/0d8f22a16f01430cb4d13bf45c5aa0ad5622db70))
+* ensure h3 eventHandler is called ([#82](https://github.com/nitedani/universal-handler/issues/82)) ([8dd3cc3](https://github.com/nitedani/universal-handler/commit/8dd3cc385f06a46afec9239897b10361bd09b4ed))
+* ensure late errors are forwarded as expected ([#138](https://github.com/nitedani/universal-handler/issues/138)) ([f37cac7](https://github.com/nitedani/universal-handler/commit/f37cac764b8b2fe054b297a52bbf12cde7076949))
+* **pipe:** do not execute multiple handlers if we already have a response ([dc7c7bb](https://github.com/nitedani/universal-handler/commit/dc7c7bb9babfec11d9bdcfde7a98ab367792777d))
+
 ## [0.4.7](https://github.com/magne4000/universal-middleware/compare/core-v0.4.6...core-v0.4.7) (2025-04-06)
 
 

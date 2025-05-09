@@ -1,5 +1,37 @@
 # Changelog
 
+## [0.5.0](https://github.com/nitedani/universal-handler/compare/vercel-v0.4.14...vercel-v0.5.0) (2025-04-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop support for Deno v1
+* add Context typings to HonoHandler and HonoMiddleware
+
+### Features
+
+* Add `vercel-edge` and `vercel-node` support ([f0b33f8](https://github.com/nitedani/universal-handler/commit/f0b33f8fcb751d50f7062f4b450b7a2c30d9a460))
+* add the ability to `pipe` adapter middlewares in addition to universal ones ([#66](https://github.com/nitedani/universal-handler/issues/66)) ([28332e3](https://github.com/nitedani/universal-handler/commit/28332e3e2bc3c2730191655ae77f56ab6a33d771))
+* **compress:** compress stream are now flushable ([#144](https://github.com/nitedani/universal-handler/issues/144)) ([8235847](https://github.com/nitedani/universal-handler/commit/823584751041516889c7cc7ee077fffc74fa5b04))
+* Default to 404 when a `UniversalHandler` does not return a Response ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* document runtime and add adapter specific properties ([203febf](https://github.com/nitedani/universal-handler/commit/203febfec402d095a443b21255a8c2d4fa99fcab))
+* Universal Router support for most adapters ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* update Deno support ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+
+
+### Bug Fixes
+
+* **deps:** update all non-major dependencies ([#88](https://github.com/nitedani/universal-handler/issues/88)) ([105940c](https://github.com/nitedani/universal-handler/commit/105940c4f2527370f4ccdd69651a1dee9a8c2a8c))
+* ensure late errors are forwarded as expected ([#138](https://github.com/nitedani/universal-handler/issues/138)) ([f37cac7](https://github.com/nitedani/universal-handler/commit/f37cac764b8b2fe054b297a52bbf12cde7076949))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @universal-middleware/core bumped to 0.5.0
+    * @universal-middleware/express bumped to 0.5.0
+
 ## [0.4.14](https://github.com/magne4000/universal-middleware/compare/vercel-v0.4.13...vercel-v0.4.14) (2025-04-06)
 
 

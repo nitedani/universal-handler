@@ -7,6 +7,38 @@
   * dependencies
     * @universal-middleware/core bumped to 0.3.3
 
+## [0.5.0](https://github.com/nitedani/universal-handler/compare/elysia-v0.4.8...elysia-v0.5.0) (2025-04-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* drop support for Deno v1
+* add Context typings to HonoHandler and HonoMiddleware
+
+### Features
+
+* @universal-middleware/compress package ([#41](https://github.com/nitedani/universal-handler/issues/41)) ([97fd518](https://github.com/nitedani/universal-handler/commit/97fd51819192a1d8b1d6659995b197ae8ddeb163))
+* add the ability to `pipe` adapter middlewares in addition to universal ones ([#66](https://github.com/nitedani/universal-handler/issues/66)) ([28332e3](https://github.com/nitedani/universal-handler/commit/28332e3e2bc3c2730191655ae77f56ab6a33d771))
+* Default to 404 when a `UniversalHandler` does not return a Response ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* document runtime and add adapter specific properties ([203febf](https://github.com/nitedani/universal-handler/commit/203febfec402d095a443b21255a8c2d4fa99fcab))
+* export are now self-contained bundles by default ([adf9f30](https://github.com/nitedani/universal-handler/commit/adf9f3007ac7655e6288fef24d418b159c79d8fd))
+* Universal Router support for most adapters ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+* update Deno support ([cc44c7c](https://github.com/nitedani/universal-handler/commit/cc44c7cc1ef6f29df278ddabc093b4225b7e7bd5))
+
+
+### Bug Fixes
+
+* **elysia:** better elysia apply function type ([c2419c6](https://github.com/nitedani/universal-handler/commit/c2419c6fd9a5346c9e81dda1d94b42569ab9cd3e))
+* **elysia:** middlewares returning early responses are handled correctly ([#134](https://github.com/nitedani/universal-handler/issues/134)) ([0d8f22a](https://github.com/nitedani/universal-handler/commit/0d8f22a16f01430cb4d13bf45c5aa0ad5622db70))
+* ensure late errors are forwarded as expected ([#138](https://github.com/nitedani/universal-handler/issues/138)) ([f37cac7](https://github.com/nitedani/universal-handler/commit/f37cac764b8b2fe054b297a52bbf12cde7076949))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @universal-middleware/core bumped to 0.5.0
+
 ## [0.4.8](https://github.com/magne4000/universal-middleware/compare/elysia-v0.4.7...elysia-v0.4.8) (2025-04-06)
 
 

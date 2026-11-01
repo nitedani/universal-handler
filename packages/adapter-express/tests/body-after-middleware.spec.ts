@@ -3,7 +3,7 @@ import { type AddressInfo, connect } from "node:net";
 import { PassThrough, Readable } from "node:stream";
 import { enhance, type UniversalMiddleware } from "@universal-middleware/core";
 import express from "express";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { adaptLendingBody } from "../src/body.js";
 import { apply, connectToWeb, createHandler } from "../src/index.js";
 import type { DecoratedRequest } from "../src/types.js";
@@ -391,6 +391,26 @@ describe("a body of more than 1 MiB read by a universal middleware", () => {
   it("still hands back a body of exactly 1 MiB", async () => {
     const url = await start(routes, [readsAll]);
     expect(await (await post(`${url}/raw`, new Uint8Array(1024 * 1024))).json()).toBe(1024 * 1024);
+  });
+
+  it("warns once that the next handler gets the body empty or cut short, and not under the cap", async () => {
+    // A copy of the adapter that no earlier test made warn
+    vi.resetModules();
+    const fresh = await import("../src/index.js");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const url = await start((app) => {
+        fresh.apply(app, [readsAll]);
+        routes(app);
+      }, []);
+      await post(`${url}/raw`, new Uint8Array(1024 * 1024));
+      expect(warn).not.toHaveBeenCalled();
+      await post(`${url}/raw`, overCap);
+      await post(`${url}/raw`, overCap);
+      expect(warn).toHaveBeenCalledTimes(1);
+    } finally {
+      warn.mockRestore();
+    }
   });
 
   // One connection: a second request reuses the first one's socket, unless the server closed it

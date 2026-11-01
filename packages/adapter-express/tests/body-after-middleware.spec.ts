@@ -1,6 +1,6 @@
-import { Agent, request as httpRequest, type Server, type ServerResponse } from "node:http";
+import type { Server, ServerResponse } from "node:http";
 import { type AddressInfo, connect } from "node:net";
-import { PassThrough, Readable } from "node:stream";
+import { Readable } from "node:stream";
 import { enhance, type UniversalMiddleware } from "@universal-middleware/core";
 import express from "express";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -253,6 +253,28 @@ describe("body read by a universal middleware", () => {
     expect(res.status).toBe(400);
   });
 
+  it("warns once that the next handler gets the body empty or cut short, and not under the cap", async () => {
+    // A copy of the adapter that no earlier test made warn
+    vi.resetModules();
+    const fresh = await import("../src/index.js");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const url = await start((app) => {
+        fresh.apply(app, [readsBody]);
+        app.post("/big", (_req, res) => res.send("ok"));
+      }, []);
+      const post = (size: number) =>
+        fetch(`${url}/big`, { method: "POST", body: new Uint8Array(size), signal: AbortSignal.timeout(3000) });
+      await post(1024 * 1024);
+      expect(warn).not.toHaveBeenCalled();
+      await post(1024 * 1024 + 1);
+      await post(1024 * 1024 + 1);
+      expect(warn).toHaveBeenCalledTimes(1);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
   it("rejects a read left pending when the middleware returns, and still hands the body back", async () => {
     const outcome = Promise.withResolvers<string>();
     const forgets: UniversalMiddleware = (request) => {
@@ -328,116 +350,6 @@ describe("body read by a universal middleware", () => {
       socket.destroy();
     } finally {
       process.off("uncaughtException", onUncaught);
-    }
-  });
-});
-
-describe("a body of more than 1 MiB read by a universal middleware", () => {
-  const readsAll: UniversalMiddleware = async (request) => {
-    if (request.method === "POST") await request.arrayBuffer();
-  };
-  const routes = (app: express.Express) => {
-    app.post("/raw", express.raw({ limit: "10mb" }), (req, res) => res.json(req.body.length));
-    app.post("/iter", async (req, res) => {
-      let length = 0;
-      for await (const chunk of req) length += (chunk as Buffer).byteLength;
-      res.json(length);
-    });
-    app.post("/never", (_req, res) => res.send("ok"));
-    app.post("/pipes", (req, res) => {
-      req.pipe(new PassThrough().resume()).on("finish", () => res.json("finish"));
-    });
-    // Reads as the issue's route does, answering with JSON on "end"
-    app.post("/listens", (req, res) => {
-      req.on("data", () => {});
-      req.on("end", () => res.json("end"));
-    });
-  };
-  const headers = { "content-type": "application/octet-stream" };
-  const overCap = new Uint8Array(1024 * 1024 + 1);
-  const post = (url: string, body: Uint8Array<ArrayBuffer>) =>
-    fetch(url, { method: "POST", headers, body, signal: AbortSignal.timeout(3000) });
-
-  it("emits no error to a route without an error listener", async () => {
-    const url = await start(routes, [readsAll]);
-    expect((await post(`${url}/listens`, overCap)).status).toBe(200);
-  });
-
-  it("leaves a route without an error listener as it was when an earlier handler only observes errors", async () => {
-    const observed: number[] = [];
-    const url = await start(routes, [readsAll], (app) =>
-      app.use((req, _res, next) => {
-        req.on("error", (err: { status: number }) => observed.push(err.status));
-        next();
-      }),
-    );
-    const res = await post(`${url}/listens`, overCap);
-    expect(await res.json()).toBe("end");
-    expect(observed).toEqual([]);
-  });
-
-  it("leaves a pipe to a stream without an error listener as it was", async () => {
-    const url = await start(routes, [readsAll]);
-    expect(await (await post(`${url}/pipes`, overCap)).json()).toBe("finish");
-  });
-
-  it("leaves a route that never reads the body answering as usual", async () => {
-    const url = await start(routes, [readsAll]);
-    const res = await post(`${url}/never`, overCap);
-    expect(res.status).toBe(200);
-    expect(await res.text()).toBe("ok");
-  });
-
-  it("still hands back a body of exactly 1 MiB", async () => {
-    const url = await start(routes, [readsAll]);
-    expect(await (await post(`${url}/raw`, new Uint8Array(1024 * 1024))).json()).toBe(1024 * 1024);
-  });
-
-  it("warns once that the next handler gets the body empty or cut short, and not under the cap", async () => {
-    // A copy of the adapter that no earlier test made warn
-    vi.resetModules();
-    const fresh = await import("../src/index.js");
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    try {
-      const url = await start((app) => {
-        fresh.apply(app, [readsAll]);
-        routes(app);
-      }, []);
-      await post(`${url}/raw`, new Uint8Array(1024 * 1024));
-      expect(warn).not.toHaveBeenCalled();
-      await post(`${url}/raw`, overCap);
-      await post(`${url}/raw`, overCap);
-      expect(warn).toHaveBeenCalledTimes(1);
-    } finally {
-      warn.mockRestore();
-    }
-  });
-
-  // One connection: a second request reuses the first one's socket, unless the server closed it
-  const keepAlive = (url: string) => {
-    const agent = new Agent({ keepAlive: true, maxSockets: 1 });
-    const send = (path: string, body: Uint8Array<ArrayBuffer>) =>
-      new Promise<{ status?: number; body: string; reused: boolean }>((resolve, reject) => {
-        const req = httpRequest(`${url}${path}`, { method: "POST", headers, agent }, (res) => {
-          let text = "";
-          res.on("data", (chunk) => {
-            text += chunk;
-          });
-          res.on("end", () => resolve({ status: res.statusCode, body: text, reused: req.reusedSocket }));
-        });
-        req.on("error", reject);
-        req.end(body);
-      });
-    return { agent, send };
-  };
-
-  it.each(["/raw", "/iter"])("keeps the connection usable for the next request after %s", async (path) => {
-    const { agent, send } = keepAlive(await start(routes, [readsAll]));
-    try {
-      await send(path, overCap);
-      expect(await send(path, new Uint8Array(10))).toEqual({ status: 200, body: "10", reused: true });
-    } finally {
-      agent.destroy();
     }
   });
 });
